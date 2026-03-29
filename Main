@@ -1,0 +1,104 @@
+import sqlite3
+from datetime import datetime
+from GUI import GUI
+from Entry import Entry
+from Receipt import Receipt
+from Submit import Submit
+from Configurations import Configurations as config
+
+class Main():
+    def __init__(self):
+        self.connection = sqlite3.connect("RestaurantDB")
+        self.cursor = self.connection.cursor()
+
+        self.create_tables()
+        self.add_columns()
+
+        items = self.items
+        order = self.prompt_order()
+
+        self.connection.commit()
+
+        self.connection.close()
+
+        self.gui = GUI(items, order)
+
+    def create_tables(self):
+        create_items = """CREATE TABLE IF NOT EXISTS items(id TEXT PRIMARY KEY, price FLOAT)"""
+        create_orders = """CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY, date STRING, tip INT)"""
+
+        self.cursor.execute(create_items)
+        self.cursor.execute(create_orders)
+
+    @property
+    def items(self):
+        for item, price in config.ITEMS.items():
+            add_item = """INSERT OR IGNORE INTO items VALUES(?, ?)"""
+
+            self.cursor.execute(add_item, (item, price))
+        
+        self.cursor.execute("SELECT * FROM items")
+        items = self.cursor.fetchall()
+
+        return items
+
+    def prompt_order(self):
+        orders = self.get_orders()
+
+        self.display_orders(orders)
+
+        while True:
+            inputted = input("Enter the order number (type new to make a new order): ")
+
+            if inputted.lower() == "new":
+                values = ("?",) * (3 + len(config.ITEMS))
+
+                insert = f"INSERT INTO orders VALUES{values}".replace("'", "")
+                
+                id = len(orders) + 1
+                time = datetime.now()
+                tip = 0
+                
+                self.cursor.execute(insert, (id, time, tip) + (0,)*len(config.ITEMS))
+
+                inputted = id
+
+            try:
+                inputted = int(inputted)
+
+                self.cursor.execute("SELECT * FROM orders WHERE id = ?", (inputted,))
+                order_info = self.cursor.fetchall()
+                
+                if not order_info:
+                    raise sqlite3.Error
+
+                return order_info[0]
+            except ValueError:
+                print("Invalid input")
+            except sqlite3.Error:
+                print("Order not found")
+
+    def get_orders(self):
+        get_all = """SELECT * FROM orders"""
+
+        self.cursor.execute(get_all)
+        orders = self.cursor.fetchall()
+
+        return orders
+    
+    def display_orders(self, orders):
+        print("Order Format: (Order number, Date updated, Tip %, amount of " + ", amount of ".join(config.ITEMS.keys()) + ")")
+
+        for order in orders:
+            print(f"Order {order[0]}:", order)
+
+    def add_columns(self):
+        for item in config.ITEMS.keys():
+            add_column = f"""ALTER TABLE orders ADD COLUMN {item} INT"""
+
+            try:
+                self.cursor.execute(add_column)
+            except sqlite3.Error:
+                print(f"{item} exists in orders")
+
+program = Main()
