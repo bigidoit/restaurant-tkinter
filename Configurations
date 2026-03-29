@@ -1,0 +1,19 @@
+class Configurations:
+    BG_COLOR = "royal blue"
+    TEXT_COLOR = "white"
+
+    FONT = "{Comic Sans MS} 10 bold"
+
+    TAX_PERCENT = 8.25/100
+
+    ENTRY_START_POS = (50, 50)
+    RECEIPT_POS = (490, 50)
+    SUBMIT_POS = (530, 250)
+
+    ITEMS = {
+        "Burger": 10,
+        "Taco": 4,
+        "Burtaco": 62,
+        "Dog": 3.25,
+        "Steak": 7.85
+    }
