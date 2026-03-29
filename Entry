@@ -1,0 +1,56 @@
+import tkinter as tk
+from Receipt import Receipt
+from Configurations import Configurations as config
+
+class Entry:
+    def __init__(self, menu_dict, inc_entry, receipt : Receipt, root, pos, item, amount, price = 0):
+        x_pos = pos[0]
+        y_pos = pos[1]
+
+        self.menu_dict = menu_dict
+        self.inc_entry = inc_entry
+        self.receipt = receipt
+
+        self.item = item
+        self.price = price
+
+        self.item_label = tk.Label(root, text = item, bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT)
+        self.item_label.place(x = x_pos, y = y_pos)
+
+        self.num_label = tk.Label(root, text = amount, bg = "dark gray", fg = config.TEXT_COLOR, font = config.FONT)
+        self.num_label.place(x = x_pos + 124, y = y_pos + 2, width = 50)
+        
+        self.cost_label = tk.Label(root, text = "Cost: ", bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT)
+        self.price_label = tk.Label(root, text = f"${amount*price:.2f}", bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT)
+
+        if price > 0:
+            self.cost_label.place(x = x_pos + 240, y = y_pos)
+            self.price_label.place(x = x_pos + 290, y = y_pos)
+
+        self.minus_button = tk.Button(root, text = "-", bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT, command = lambda: self.change_amount(-1))
+        self.minus_button.config(width = 2, height = 1)
+        self.minus_button.place(x = x_pos + 90, y = y_pos)
+
+        self.plus_button = tk.Button(root, text = "+", bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT, command = lambda: self.change_amount(1))
+        self.plus_button.config(width = 2, height = 1)
+        self.plus_button.place(x = x_pos + 180, y = y_pos)
+
+    def change_amount(self, inc): 
+        inc_multi = self.inc_entry.get()
+
+        try:
+            inc_multi = int(inc_multi)
+        except ValueError:
+            inc_multi = 1
+
+            print("Unacceptable increment value, defaulted to 1")
+
+        inc *= inc_multi
+
+        self.menu_dict[self.item][0] = max(self.menu_dict[self.item][0] + inc, 0)
+        result = max(float(self.price_label["text"][1:]) + float(self.price)*inc, 0)
+
+        self.num_label["text"] = str(self.menu_dict[self.item][0])
+        self.price_label["text"] = f"${result:.2f}"
+        
+        self.receipt.update_receipt()
