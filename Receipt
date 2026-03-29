@@ -1,0 +1,56 @@
+import tkinter as tk
+import math
+from Configurations import Configurations as config
+
+class Receipt:
+    ELEMENTS = [
+        "Tax",
+        "Tip",
+        "Subtotal",
+        "Total"
+        ]
+    
+    def __init__(self, menu_dict, root, pos):
+        x_pos = pos[0]
+        y_pos = pos[1]
+
+        self.menu_dict = menu_dict
+
+        for i, element in enumerate(Receipt.ELEMENTS):
+            setattr(self, "text_" + element, tk.Label(root, text = element, bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT))
+            
+            text_label = getattr(self, "text_" + element)
+            text_label.place(x = x_pos, y = y_pos + i*50)
+
+            setattr(self, "num_" + element, tk.Label(root, text = "$0.00", bg = config.BG_COLOR, fg = config.TEXT_COLOR, font = config.FONT))
+            
+            num_label = getattr(self, "num_" + element)
+            num_label.place(x = x_pos + 110, y = y_pos + i*50)
+
+    def sum_prices(self) -> float:
+        sum = 0
+
+        for info in self.menu_dict.values():
+            amount = info[0]
+            price = info[1]
+
+            sum += float(price)*amount
+
+        return sum
+
+    def update_receipt(self):
+        sum = self.sum_prices()
+
+        tip_percent = self.menu_dict["Tip %"][0]/100
+        tax = math.floor(sum*config.TAX_PERCENT*100)/100
+        tip = math.floor(sum*tip_percent*100)/100
+
+        subtotal_label = getattr(self, "num_" + "Subtotal")
+        tax_label = getattr(self, "num_" + "Tax")
+        tip_label = getattr(self, "num_" + "Tip")
+        total_label = getattr(self, "num_" + "Total")
+
+        subtotal_label["text"] = f"${sum:.2f}"
+        tax_label["text"] = f"${tax:.2f}"
+        tip_label["text"] = f"${tip:.2f}"
+        total_label["text"] = f"${sum + tax + tip:.2f}"
