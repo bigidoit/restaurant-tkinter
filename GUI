@@ -1,0 +1,43 @@
+import tkinter as tk
+from Entry import Entry
+from Receipt import Receipt
+from Submit import Submit
+from Configurations import Configurations as config
+
+class GUI:
+    def __init__(self, items, order):
+        root = tk.Tk()
+        root.title("asop")
+        root.geometry("800x600")
+        root.configure(background = config.BG_COLOR)
+
+        pos_x = config.ENTRY_START_POS[0]
+        pos_y = config.ENTRY_START_POS[1]
+        
+        self.menu_dict = {}
+
+        self.inc_label = tk.Label(root, font = config.FONT, fg = config.TEXT_COLOR, bg = config.BG_COLOR, text = "Increment")
+        self.inc_entry = tk.Entry(root, font = config.FONT, fg = config.TEXT_COLOR, bg = "dark gray", width = 5)
+
+        self.inc_entry.insert(0, "1")
+        self.receipt = Receipt(self.menu_dict, root, config.RECEIPT_POS)
+
+        self.menu_dict["Tip %"] = [order[2], 0]
+
+        for i, (food, price) in enumerate(items):
+            amount = order[i + 3]
+
+            self.menu_dict[food] = [amount, price]
+
+            Entry(self.menu_dict, self.inc_entry, self.receipt, root, (pos_x, pos_y + i*50), food, amount, price)
+
+        Entry(self.menu_dict, self.inc_entry, self.receipt, root, (pos_x, pos_y + len(items)*50), "Tip %", order[2])
+
+        self.inc_label.place(x = pos_x, y = pos_y + 50 + len(items)*50)
+        self.inc_entry.place(x = pos_x + 90, y = pos_y + 50 + len(items)*50)
+
+        Submit(order[0], self.menu_dict, root)
+
+        self.receipt.update_receipt()
+        
+        root.mainloop()
